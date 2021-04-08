@@ -1,15 +1,15 @@
 # this is the code for 2017 10 x 10 m releve plant data
 library(readxl)
 rel_spp <- read_excel("~/Master's research/Coronavirus/releve_raw_data.xlsx", 
-                      sheet = "rel_spp")
+              sheet = "rel_spp")
 rel_env_raw <- read_excel("~/Master's research/Coronavirus/releve_raw_data.xlsx", 
-                          sheet = "rel_env", col_types = c("guess", "skip", "text", 
-                                                           "text", "numeric", "skip", "numeric","numeric", "numeric", "numeric", "numeric", 
-                                                           "text", "text", "numeric", "numeric", "text", "text", "numeric", "text", "numeric", 
-                                                           "numeric", "numeric",  "skip", "text", "text", "skip", "numeric", "numeric", "numeric", 
-                                                           "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",  
-                                                           "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
-                                                           "numeric", "numeric", "skip", "skip"))
+           sheet = "rel_env", col_types = c("guess", "skip", "text", 
+           "text", "numeric", "skip", "numeric","numeric", "numeric", "numeric", "numeric", 
+           "text", "text", "numeric", "numeric", "text", "text", "numeric", "text", "numeric", 
+           "numeric", "numeric",  "skip", "text", "text", "skip", "numeric", "numeric", "numeric", 
+           "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric",  
+           "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", 
+           "numeric", "numeric", "skip", "skip"))
 
 # add worm_category to rel_env df
 worm_cat <- read_excel("~/Master's research/Coronavirus/releve_raw_data.xlsx", 
@@ -300,11 +300,11 @@ rel.nms.omit <- ggplot(star, aes(x=NMDS1, xend=centroid1, y=NMDS2, yend=centroid
 # remove redundant environmental variables
 ## removed 'month' as an env var bc we focused on finding unwormed sites earlier in summer
 myvars <- names(rel_env) %in% c("new_utm_e", "new_utm_n", "elev_ft", "subsec", "lta",
-                                "overstory_new", "topopos", "aspect", "perslope", "e_inch", "b_inch", "ctop", 
-                                "avg_tex", "stand_age_2017, IERAT_new", "wormed_then_pred", "wormed_now_actual",
-                                "new_a", "new_o", "old_a", "old_o", "epigeic_worms_pres", "epiendogeic_worms_pres",
-                                "endogeic_worms_pres", "anecic_worms_pres", "epiendogeic_anecic_worms_pres", 
-                                "non_epigeic_worms_pres", "ecogroup_sum", "worm_category")
+      "overstory_new", "topopos", "aspect", "perslope", "e_inch", "b_inch", "ctop", 
+          "avg_tex", "stand_age_2017, IERAT_new", "wormed_then_pred", "wormed_now_actual",
+       "new_a", "new_o", "old_a", "old_o", "epigeic_worms_pres", "epiendogeic_worms_pres",
+      "endogeic_worms_pres", "anecic_worms_pres", "epiendogeic_anecic_worms_pres", 
+          "non_epigeic_worms_pres", "ecogroup_sum", "worm_category")
 newdata <- rel_env[myvars]
 ef <- envfit(nms.1, newdata, permutations = 10000)
 plot(nms.1)
@@ -383,16 +383,16 @@ new_lf <- test.3
 new_lf1 <- data.frame()
 for (r in unique(new_lf$releve)){
   comp <- data.frame("releve"=rep(r,52),"family"=c("Adoxaceae", "Apiaceae","Araceae",  
-                                                   "Araliaceae","Aristolochiaceae", "Caprifoliaceae", "Colchicaceae", "Cornaceae",
-                                                   "Cyperaceae", "Dryopteridaceae",  "Fagaceae", "Grossulariaceae", "Liliaceae", 
-                                                   "Myrsinaceae", "Oleaceae","Orphioglossaceae",  "Pinaceae",  "Ranunculaceae",
-                                                   "Rosaceae",  "Ruscaceae",  "Salicaceae","Sapindaceae", "Asteraceae",  "Betulaceae",    
-                                                   "Diervillaceae", "Juncaceae", "Lycopodiaceae", "Malvaceae", "Melanthiaceae",  
-                                                   "Papaveraceae", "Poaceae",  "Smilacaceae",  "Thymelaeaceae",  "Violaceae",
-                                                   "Balsaminaceae",  "Equisetaceae", "Fabaceae", "Osmundaceae",  "Rubiaceae",
-                                                   "Saxifragaceae",  "Ulmaceae", "Ericaceae",  "Orchidaceae",  "Berberidaceae",
-                                                   "Rhamnaceae", "Onagraceae", "Vitaceae", "Dennstaedtiaceae", "Lamiaceae",
-                                                   "Apocynaceae",  "Pteridaceae",  "Anacardiaceae"))
+             "Araliaceae","Aristolochiaceae", "Caprifoliaceae", "Colchicaceae", "Cornaceae",
+    "Cyperaceae", "Dryopteridaceae",  "Fagaceae", "Grossulariaceae", "Liliaceae", 
+              "Myrsinaceae", "Oleaceae","Orphioglossaceae",  "Pinaceae",  "Ranunculaceae",
+             "Rosaceae",  "Ruscaceae",  "Salicaceae","Sapindaceae", "Asteraceae",  "Betulaceae",    
+           "Diervillaceae", "Juncaceae", "Lycopodiaceae", "Malvaceae", "Melanthiaceae",  
+         "Papaveraceae", "Poaceae",  "Smilacaceae",  "Thymelaeaceae",  "Violaceae",
+             "Balsaminaceae",  "Equisetaceae", "Fabaceae", "Osmundaceae",  "Rubiaceae",
+          "Saxifragaceae",  "Ulmaceae", "Ericaceae",  "Orchidaceae",  "Berberidaceae",
+       "Rhamnaceae", "Onagraceae", "Vitaceae", "Dennstaedtiaceae", "Lamiaceae",
+            "Apocynaceae",  "Pteridaceae",  "Anacardiaceae"))
   comp <- merge(comp,new_lf,all.y=FALSE,all.x=TRUE)
   comp[is.na(comp)] <- 0
   new_lf1 <- rbind(new_lf1,comp) }
