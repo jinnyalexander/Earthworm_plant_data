@@ -141,12 +141,7 @@ rrich.c1 <- rrich.c[c("Diversity", "Mean", "Unwormed",
 
 # combine diversity indices
 div.comb <- rbind(rshan.c1, rsimp.c1, rJ.c1, rrich.c1)
-# make a better looking table
-library(stargazer)
-stargazer(div.comb, type = "html", digits=2, rownames=FALSE,
-          summary=FALSE,
-          title = "Diversity indices for releve data",
-          out = "~/Master's research/Coronavirus/Tables/diversity.html")
+div.comb
 
 # Pielou's evenness significance testing
 anova(lm(J~rel_env$worm_category))
@@ -169,12 +164,8 @@ cor.test(rel_env$richness, rel_env$overstory_new) # nope
 
 ####beta diversity dissimilarity
 # are releves more similar w/in a treatment than between treatments?
-# get rid of species with less than 3 occurrences (<5% of releves)
-keep.spec <- names(relspp.mx2)[colSums(relspp.mx2>0)>3]
-relspp.mx3 <- relspp.mx2[,keep.spec]
-# spp.matrix2 <- wisconsin(spp.matrix2) # code for wisconsin standardization
-# b-c dissimilarity
-vdiss.2017 <- vegdist(relspp.mx1,'bray')
+relspp.mx2 <- relspp.mx1[nrow(relspp.mx1):1,] #flip row order
+vdiss.2017 <- vegdist(relspp.mx2,'bray')
 # matrix showing dissimilarity (higher values=less similar)
 
 # mean B-C dissimilarity between and within wormed/unwormed plots
@@ -182,11 +173,7 @@ mvdiss.2017 <- meandist(vdiss.2017, rel_env$worm_category) # mean 2017 dissimila
 # avg between vs within group dissimilarity
 summary(mvdiss.2017)
 mvdiss.2017 <- mvdiss.2017[c(3,2,1),c(3,2,1)]
-stargazer(mvdiss.2017, type = "html", digits=2,
-          summary=FALSE,
-          title = "Mean dissimilarity between and within worm categories",
-          flip = TRUE,
-          out = "~/Master's research/Coronavirus/Tables/meandis.html")
+mvdiss.2017
 
 # adonis using bray-curtis dissimilarity
 per.plants <- adonis2(vdiss.2017~rel_env$worm_category, nperms=100000)
@@ -228,30 +215,16 @@ pairwise.adonis <- function(x,factors, sim.function = 'vegdist', sim.method = 'b
 p.wise2017 <- pairwise.adonis(relspp.mx2,rel_env$worm_category, p.adjust.m = "fdr")
 
 # output table
-stargazer(p.wise2017, type = "html", digits=1, rownames=FALSE,
-          summary=FALSE,
-          title = "Pairwise differences in species composition by worm category",
-          flip = FALSE,
-          out = "~/Master's research/Year 2/Chapter 3/pairwise.html")
-
+p.wise2017
 
 # NMS with 2 dimensions
-nms.1 <- metaMDS(relspp.mx3)
+nms.1 <- metaMDS(relspp.mx2)
 nms.1
 stressplot(nms.1)
-ordiplot(nms.1,type="n")
-ordispider(nms.1, groups = rel_env$worm_category, col=1:3)
 
-# lets try NMS with 3 dimensions
-nms.3 <- metaMDS(relspp.mx1, k=3)
-ordiplot(nms.3,type="n")
-ordihull(nms.3,groups=rel_env$worm_category,draw="polygon",col="grey90",label=F)
-orditorp(nms.3,display="species",col="red",air=0.01)
-orditorp(nms.3,display="sites",cex=1.25,air=0.01)
-
-# try re-creating ordination with ggplot
+# graph NMS ordination with ggplot
 data.scores <- as.data.frame(scores(nms.1))  
-#Using the scores function from vegan to extract the site scores and convert to a df
+# Using the scores function from vegan to extract the site scores and convert to a df
 data.scores$site <- rownames(data.scores)  
 # create a column of site names, from the rownames of data.scores
 data.scores$grp <- rel_env$worm_category 
@@ -266,7 +239,7 @@ star <- metadata_nmds %>%  group_by(grp) %>% mutate(centroid1 = mean(NMDS1),
                                                     centroid2 = mean(NMDS2)) %>% ungroup
 centroid <- metadata_nmds %>% group_by(grp) %>% summarise(axis1 = mean(NMDS1), 
                                                           axis2 = mean(NMDS2), .groups="drop")
-rel.nms.omit <- ggplot(star, aes(x=NMDS1, xend=centroid1, y=NMDS2, yend=centroid2, 
+ggplot(star, aes(x=NMDS1, xend=centroid1, y=NMDS2, yend=centroid2, 
                                  color=grp)) +
   geom_point() +
   geom_point(data=centroid, mapping=aes(x=axis1, y=axis2, color=grp), 
@@ -279,15 +252,14 @@ rel.nms.omit <- ggplot(star, aes(x=NMDS1, xend=centroid1, y=NMDS2, yend=centroid
                      breaks=c("unwormed",
                               "short_term_wormed",
                               "long_term_wormed"),
-                     values=c("#fde0dd", "#fa9fb5", "#c51b8a"),
+                     values=c("#0571b0", "#f4a582", "#ca0020"),
                      labels=c("Unwormed (n=6)",
                               "Short-term wormed (n=23)",
-                              "Long-term wormed (n=12"))+
-  theme_dark() +
-  ggtitle("Releve data without rare species")+
+                              "Long-term wormed (n=12)"))+
+  theme_bw() +
   theme(
     legend.key.size = unit(0.25, "cm"),
-    legend.position = c(0.2, 0.05),
+    legend.position = c(0.2, 0.07),
     legend.background = element_rect(fill="white",
                                      color="black"),
     legend.margin = margin(t=-2, r=3, b=3, l=3))
@@ -325,12 +297,7 @@ names(rmcov.c) <- c("n", "Unwormed","Short-term wormed","Long-term wormed")
 rmcov.c$Species <- rownames(rmcov.c)
 rmcov.c <- rmcov.c[,c(5,1:4)]
 test<-rmcov.c[!(rmcov.c$n<=4),] # exclude species with less than 5 occurrences
-# make a better looking table
-stargazer(test, type = "html", digits=1, rownames=FALSE,
-          summary=FALSE,
-          title = "Mean understory cover between worm categories",
-          flip = FALSE,
-          out = "~/Master's research/Coronavirus/Tables/meancover.html")
+test
 
 # total cover by life form
 life.form <- as.data.frame(rel_spp[!duplicated(rel_spp$taxon_new), ])
@@ -365,11 +332,7 @@ new_lf6 <- as.data.frame(t(new_lf5))
 new_lf6 <- new_lf6 %>% dplyr::rename('Long-term wormed'=V1,'Short-term wormed'=V2, 'Unwormed'=V3)
 row.names(new_lf6) <- c("Woody deciduous", "Woody evergreen", "Graminoids", "Herbaceous")
 new_lf6 <- new_lf6[,3:1]
-stargazer(new_lf6, type = "html", digits=1, rownames=TRUE,
-          summary=FALSE,
-          title = "Percent cover of understory plants by life form and worm category",
-          flip = FALSE,
-          out = "~/Master's research/Coronavirus/Tables/lifeformcover.html")
+new_lf6
 
 # try the same thing but with family data
 test.1 <- as.data.frame(test %>% select(dnr_releve_nbr.x, taxon_new, family, cover_100))
@@ -416,8 +379,4 @@ new_lf8$long_term_wormed <- as.numeric(new_lf8$long_term_wormed)
 new_lf8$short_term_wormed <- as.numeric(new_lf8$short_term_wormed)
 new_lf8$unwormed <- as.numeric(new_lf8$unwormed)
 new_lf8 <- new_lf8[, c(1,5,4,3,2)]
-stargazer(new_lf8, type = "html", digits=2, rownames=FALSE,
-          summary=FALSE,
-          title = "Percent cover of understory plants by family and worm category",
-          flip = FALSE,
-          out = "~/Master's research/Coronavirus/Tables/familycover.html")
+new_lf8

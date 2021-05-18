@@ -38,18 +38,18 @@ spp_env <- read_excel("~/Master's research/Coronavirus/spp.env.xlsx",
 library(dplyr)
 try1 <- left_join(spp_env, worm_env, by = 'site')
 env.matrix11 <- as.data.frame(cbind(site=try1$site, month=try1$month_now, 
-                                    utm_e=try1$new_utm_e, overstory=try1$overstory_new,
-                                    utm_n=try1$new_utm_n,elev_ft=try1$elev_ft, subsec=try1$subsec, lta=try1$lta, 
-                                    topopos=try1$topopos, aspect=try1$aspect, perslope=try1$perslope, drclass=try1$drclass, 
-                                    stand_age_2017=try1$stand_age_2017, county=try1$county, IERAT_new=try1$IERAT_new, 
-                                    wormed_then_pred=try1$wormed_then_pred, changed_to_wormed=try1$changed_to_wormed, 
-                                    wormed_now_actual=try1$wormed_now_actual, new_a=try1$new_a, new_o=try1$new_o, 
-                                    epigeic_worms_pres=try1$epigeic_worms_pres, 
-                                    epiendogeic_worms_pres=try1$epiendogeic_worms_pres, 
-                                    endogeic_worms_pres=try1$endogeic_worms_pres, anecic_worms_pres=try1$anecic_worms_pres, 
-                                    epiendogeic_anecic_worms_pres=try1$epiendogeic_anecic_worms_pres,
-                                    non_epigeic_worms_pres=try1$non_epigeic_worms_pres, ecogroup_sum=try1$ecogroup_sum, 
-                                    worm_category=try1$worm_category))
+            utm_e=try1$new_utm_e, overstory=try1$overstory_new,
+        utm_n=try1$new_utm_n,elev_ft=try1$elev_ft, subsec=try1$subsec, lta=try1$lta, 
+   topopos=try1$topopos, aspect=try1$aspect, perslope=try1$perslope, drclass=try1$drclass, 
+         stand_age_2017=try1$stand_age_2017, county=try1$county, IERAT_new=try1$IERAT_new, 
+     wormed_then_pred=try1$wormed_then_pred, changed_to_wormed=try1$changed_to_wormed, 
+    wormed_now_actual=try1$wormed_now_actual, new_a=try1$new_a, new_o=try1$new_o, 
+          epigeic_worms_pres=try1$epigeic_worms_pres, 
+        epiendogeic_worms_pres=try1$epiendogeic_worms_pres, 
+          endogeic_worms_pres=try1$endogeic_worms_pres, anecic_worms_pres=try1$anecic_worms_pres, 
+       epiendogeic_anecic_worms_pres=try1$epiendogeic_anecic_worms_pres,
+         non_epigeic_worms_pres=try1$non_epigeic_worms_pres, ecogroup_sum=try1$ecogroup_sum, 
+      worm_category=try1$worm_category))
 
 # get rid of spaces
 library(stringr)
@@ -85,21 +85,43 @@ keep.spec1 <- names(w.w)[colSums(w.w>0)>0]
 w.w1 <- w.w[,keep.spec1]
 
 # graph the 3 species area curves
-
-
 library(ggplot2)
-ggplot(sp_raw, aes(x=log(Area), y=log(Total_num), color=worm_category)) + geom_point() + 
+library(ggpmisc)
+test <- ggplot(sp_raw, aes(x=log(Area), y=log(Total_num), color=worm_category)) + 
   geom_smooth(method=glm, 
               formula = y~(x), show.legend = FALSE) +
-  theme(
-    legend.key.size = unit(0.25, "cm"),
-    legend.position = c(0.8, 0.1),
-    legend.background = element_rect(fill="white",
-                                     color="black"),
-    legend.margin = margin(t=-2, r=3, b=3, l=3)) +
-  labs(y= "Species accumulation (log)", x = "Area sampled (log)" )+ 
-  geom_jitter(width=.1)
+  stat_poly_eq(geom = "text_npc",
+               formula = y~(x),
+               aes(label = paste(..eq.label.., ..rr.label.., sep = "*plain(\",\")~")),
+               parse = TRUE, size = 4, 
+               label.x = 0.05, label.y = c(0.85, 0.90, 0.95),
+               hjust = "left", vjust = "center") + 
+  scale_color_manual(name=NULL,
+                     breaks=c("unwormed",
+                              "short_term_wormed",
+                              "long_term_wormed"),
+                     values=c("#0571b0", "#f4a582", "#ca0020"),
+                     labels=c("Unwormed (n=6)",
+                              "Short-term wormed (n=22)",
+                              "Long-term wormed (n=12)"))+
+  labs(y= "Cumulative number of species (log)", x = "Area sampled (log)" )+ 
+  geom_jitter(width=.1)+
+  theme_bw()+ 
+theme(legend.key.size = unit(0.3, "cm"),
+      legend.position = c(0.8, 0.1),
+      legend.background = element_rect(fill="white", color="black"),
+      legend.margin = margin(t=-2, r=3, b=3, l=3))
+test
 
+lm_fit <- glm(log(Area) ~ log(Total_num), data=sp_raw)
+summary(lm_fit)
+# save predictions of the model in the new data frame 
+# together with variable you want to plot against
+predicted_df <- data.frame(mpg_pred = predict(lm_fit, sp_raw), worm_category=sp_raw$worm_category)
+# this is the predicted line of multiple linear regression
+ggplot(data = sp_raw, aes(x = Area, y = Total_num)) + 
+  geom_point(color='blue') +
+  geom_line(color='red',data = predicted_df, aes(x=mpg_pred, y=worm_category))
 
 # How speciose are my communities?
 # shannon diversity
@@ -193,12 +215,7 @@ rJ.c1 <- rJ.c[c("Diversity", "Mean", "Unwormed",
 
 # combine diversity indices
 div.comb <- rbind(rshan.c1, rsimp.c1, rJ.c1, rrich.c1)
-# make a better looking table
-library(stargazer)
-stargazer(div.comb, type = "html", digits=2, rownames=FALSE,
-          summary=FALSE,
-          title = "Diversity indices for species area plot data",
-          out = "~/Master's research/Coronavirus/Tables/diversity.html")
+div.comb
 
 # Simpson's diversity significance testing
 ## should worm category be a factor or numeric for ANOVA?
@@ -228,11 +245,7 @@ mvdiss.2017 <- meandist(vdiss.2017, env.matrix$worm_category) # mean 2017 dissim
 # avg between vs within group dissimilarity
 summary(mvdiss.2017)
 mvdiss.2017 <- mvdiss.2017[c(3,2,1),c(3,2,1)]
-stargazer(mvdiss.2017, type = "html", digits=2,
-          summary=FALSE,
-          title = "Mean dissimilarity between and within worm categories",
-          flip = TRUE,
-          out = "~/Master's research/Coronavirus/Tables/meandis.html")
+mvdiss.2017
 
 #jaccard's index
 vJaccard <- vegdist(spp.matrix1, 'jaccard')
@@ -320,12 +333,7 @@ names(rmcov.c) <- c("n", "Unwormed","Short-term wormed","Long-term wormed")
 rmcov.c$Species <- rownames(rmcov.c)
 rmcov.c <- rmcov.c[,c(5,1:4)]
 test<-rmcov.c[!(rmcov.c$n<=4),] # exclude species with less than 5 occurrences
-# make a better looking table
-stargazer(test, type = "html", digits=1, rownames=FALSE,
-          summary=FALSE,
-          title = "Mean understory cover between worm categories",
-          flip = FALSE,
-          out = "~/Master's research/Coronavirus/Tables/meancover.html")
+test
 
 # Check whether 2017 overstory cover was significantly different among worm categories
 test <- aov(overstory ~ worm_category, data = env.matrix)
